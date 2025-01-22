@@ -1,0 +1,72 @@
+{% extends "bar.html" %} {% block content %}
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Add New Alarm - OpenShockClock</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles.css') }}"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <h1>Add New Alarm</h1>
+            <form method="POST">
+                <div class="form-group">
+                    <label for="name">Alarm Name:</label>
+                    <input type="text" id="name" name="name" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="intensity">Intensity (0-100):</label>
+                    <input
+                        type="number"
+                        id="intensity"
+                        name="intensity"
+                        min="0"
+                        max="100"
+                        required
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Duration (seconds):</label>
+                    <input
+                        type="number"
+                        id="duration"
+                        name="duration"
+                        min="0.1"
+                        step="0.1"
+                        required
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="time">Time (HH:MM):</label>
+                    <input type="time" id="time" name="time" required />
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input
+                        type="checkbox"
+                        id="vibrate_before"
+                        name="vibrate_before"
+                    />
+                    <label for="vibrate_before"
+                        >Vibrate for 5 seconds at intensity 100, 1 minute before
+                        alarm</label
+                    >
+                </div>
+
+                <div class="button-group">
+                    <button type="submit">Save Alarm</button>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>
+
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "bar.html" %} {% block content %}
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>OpenShockClock</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles.css') }}"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <h1>Homepage</h1>
+
+            <div class="alarm-list">
+                {% for name, alarm in alarms.items() %}
+                <div
+                    class="alarm"
+                    alarm-time="{{ alarm[0].strftime('%Y-%m-%dT%H:%M:%S') }}"
+                >
+                    <div class="alarm-header">
+                        <h3>{{ name }}</h3>
+                        <div class="alarm-actions">
+                            <a
+                                href="{{ url_for('edit_alarm', alarm_name=name) }}"
+                                class="icon-button edit-button"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                                    ></path>
+                                    <path
+                                        d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                                    ></path>
+                                </svg>
+                            </a>
+                            <a
+                                href="{{ url_for('delete_alarm', alarm_name=name) }}"
+                                class="icon-button delete-button"
+                                onclick="return confirm('Are you sure you want to delete this alarm?');"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                    ></path>
+                                    <line
+                                        x1="10"
+                                        y1="11"
+                                        x2="10"
+                                        y2="17"
+                                    ></line>
+                                    <line
+                                        x1="14"
+                                        y1="11"
+                                        x2="14"
+                                        y2="17"
+                                    ></line>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    <p>Intensity: {{ alarm[1] }}</p>
+                    <p>Duration: {{ alarm[2] / 1000 }} seconds</p>
+                    <p>
+                        Vibration: {% if alarm[3] %}On{% else %}Off{% endif %}
+                    </p>
+                    <p>Time Until Shock: <span class="countdown"></span></p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="buttons">
+                <button
+                    onclick="window.location.href='{{ url_for('add_alarm') }}'"
+                >
+                    Add Alarm
+                </button>
+                <button
+                    onclick="window.location.href='{{ url_for('setup') }}'"
+                    class="setup-button {% if not env_file_exists %}glow{% endif %}"
+                >
+                    Setup API and Shocker ID
+                </button>
+            </div>
+        </div>
+
+        <script>
+            function updateCountdowns() {
+                const alarms = document.querySelectorAll(".alarm");
+                alarms.forEach((alarm) => {
+                    const alarmTime = new Date(
+                        alarm.getAttribute("alarm-time"),
+                    );
+                    const now = new Date();
+                    const timeDiff = alarmTime - now;
+
+                    if (timeDiff > 0) {
+                        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                        const minutes = Math.floor(
+                            (timeDiff % (1000 * 60 * 60)) / (1000 * 60),
+                        );
+                        const seconds = Math.floor(
+                            (timeDiff % (1000 * 60)) / 1000,
+                        );
+                        alarm.querySelector(".countdown").textContent =
+                            `${hours}h ${minutes}m ${seconds}s`;
+                    } else {
+                        alarm.querySelector(".countdown").textContent =
+                            "Alarm triggered";
+                    }
+                });
+            }
+
+            setInterval(updateCountdowns, 1000);
+            updateCountdowns();
+        </script>
+    </body>
+</html>
+
+{% endblock %}

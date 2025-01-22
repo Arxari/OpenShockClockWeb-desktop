@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>OpenShockClock</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #131516;
+                color: #ffffff;
+            }
+
+            .top-bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: #1a1d1f;
+                padding: 10px 20px;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .home-link {
+                font-size: 1.2em;
+                font-weight: bold;
+                color: #ff5c82;
+                text-decoration: none;
+            }
+
+            .date-time {
+                color: #ffffff;
+                text-align: right;
+            }
+
+            .date,
+            .time {
+                display: block;
+            }
+
+            .container {
+                padding: 20px;
+                padding-top: 60px;
+            }
+
+            @media screen and (max-width: 600px) {
+                .date {
+                    display: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header class="top-bar">
+            <a href="{{ url_for('index') }}" class="home-link"
+                >OpenShockClock</a
+            >
+            <div class="date-time">
+                <span class="date" id="currentDate"></span>
+                <span class="time" id="currentTime"></span>
+            </div>
+        </header>
+
+        <div class="container">{% block content %}{% endblock %}</div>
+
+        <script>
+            function updateDateTime() {
+                const now = new Date();
+                const dateOptions = {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                };
+                const timeOptions = {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                };
+
+                const dateString = now.toLocaleDateString("en-US", dateOptions);
+                const timeString = now.toLocaleTimeString("en-US", timeOptions);
+
+                document.getElementById("currentDate").textContent = dateString;
+                document.getElementById("currentTime").textContent = timeString;
+            }
+
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+        </script>
+    </body>
+</html>
