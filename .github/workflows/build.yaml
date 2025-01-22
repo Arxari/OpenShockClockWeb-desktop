@@ -3,7 +3,7 @@ name: Build OpenShockClock
 on:
   push:
     tags:
-      - "v*"
+      - "v*" # Triggers on any tag starting with 'v'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -40,7 +40,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libgtk-3-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev
 
       - name: Install dependencies
         run: |
@@ -48,7 +48,65 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Create spec file
+      - name: Create spec file on Windows
+        if: matrix.os == 'windows-latest'
+        shell: cmd
+        run: |
+          echo # -*- mode: python ; coding: utf-8 -*- > openshockclock.spec
+          echo. >> openshockclock.spec
+          echo block_cipher = None >> openshockclock.spec
+          echo. >> openshockclock.spec
+          echo added_files = [ >> openshockclock.spec
+          echo     ('singleuser/static', 'static'), >> openshockclock.spec
+          echo     ('singleuser/templates', 'templates'), >> openshockclock.spec
+          echo ] >> openshockclock.spec
+          echo. >> openshockclock.spec
+          echo a = Analysis( >> openshockclock.spec
+          echo     ['singleuser/app.py'], >> openshockclock.spec
+          echo     pathex=[], >> openshockclock.spec
+          echo     binaries=[], >> openshockclock.spec
+          echo     datas=added_files, >> openshockclock.spec
+          echo     hiddenimports=['webview', 'PIL', 'flask', 'configparser', 'requests'], >> openshockclock.spec
+          echo     hookspath=[], >> openshockclock.spec
+          echo     hooksconfig={}, >> openshockclock.spec
+          echo     runtime_hooks=[], >> openshockclock.spec
+          echo     excludes=['kivy'], >> openshockclock.spec
+          echo     win_no_prefer_redirects=False, >> openshockclock.spec
+          echo     win_private_assemblies=False, >> openshockclock.spec
+          echo     cipher=block_cipher, >> openshockclock.spec
+          echo     noarchive=False, >> openshockclock.spec
+          echo ) >> openshockclock.spec
+          echo. >> openshockclock.spec
+          echo pyz = PYZ( >> openshockclock.spec
+          echo     a.pure, >> openshockclock.spec
+          echo     a.zipped_data, >> openshockclock.spec
+          echo     cipher=block_cipher >> openshockclock.spec
+          echo ) >> openshockclock.spec
+          echo. >> openshockclock.spec
+          echo exe = EXE( >> openshockclock.spec
+          echo     pyz, >> openshockclock.spec
+          echo     a.scripts, >> openshockclock.spec
+          echo     a.binaries, >> openshockclock.spec
+          echo     a.zipfiles, >> openshockclock.spec
+          echo     a.datas, >> openshockclock.spec
+          echo     [], >> openshockclock.spec
+          echo     name='OpenShockClock', >> openshockclock.spec
+          echo     debug=False, >> openshockclock.spec
+          echo     bootloader_ignore_signals=False, >> openshockclock.spec
+          echo     strip=False, >> openshockclock.spec
+          echo     upx=True, >> openshockclock.spec
+          echo     upx_exclude=[], >> openshockclock.spec
+          echo     runtime_tmpdir=None, >> openshockclock.spec
+          echo     console=True, >> openshockclock.spec
+          echo     disable_windowed_traceback=False, >> openshockclock.spec
+          echo     target_arch=None, >> openshockclock.spec
+          echo     codesign_identity=None, >> openshockclock.spec
+          echo     entitlements_file=None, >> openshockclock.spec
+          echo     icon='singleuser/static/favicon.ico' >> openshockclock.spec
+          echo ) >> openshockclock.spec
+
+      - name: Create spec file on Unix
+        if: matrix.os != 'windows-latest'
         run: |
           cat > openshockclock.spec << 'EOF'
           # -*- mode: python ; coding: utf-8 -*-
