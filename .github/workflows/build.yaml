@@ -3,7 +3,7 @@ name: Build OpenShockClock
 on:
   push:
     tags:
-      - "v*" # Triggers on any tag starting with 'v'
+      - "v*"
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -13,9 +13,7 @@ jobs:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: windows-latest
             output_name: OpenShockClock.exe
@@ -46,141 +44,25 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pyinstaller
+          pip install cx_Freeze
 
-      - name: Create spec file on Windows
-        if: matrix.os == 'windows-latest'
-        shell: cmd
+      - name: Build with cx_Freeze
         run: |
-          echo # -*- mode: python ; coding: utf-8 -*- > openshockclock.spec
-          echo. >> openshockclock.spec
-          echo block_cipher = None >> openshockclock.spec
-          echo. >> openshockclock.spec
-          echo added_files = [ >> openshockclock.spec
-          echo     ('singleuser/static', 'static'), >> openshockclock.spec
-          echo     ('singleuser/templates', 'templates'), >> openshockclock.spec
-          echo ] >> openshockclock.spec
-          echo. >> openshockclock.spec
-          echo a = Analysis( >> openshockclock.spec
-          echo     ['singleuser/app.py'], >> openshockclock.spec
-          echo     pathex=[], >> openshockclock.spec
-          echo     binaries=[], >> openshockclock.spec
-          echo     datas=added_files, >> openshockclock.spec
-          echo     hiddenimports=['webview', 'PIL', 'flask', 'configparser', 'requests'], >> openshockclock.spec
-          echo     hookspath=[], >> openshockclock.spec
-          echo     hooksconfig={}, >> openshockclock.spec
-          echo     runtime_hooks=[], >> openshockclock.spec
-          echo     excludes=['kivy'], >> openshockclock.spec
-          echo     win_no_prefer_redirects=False, >> openshockclock.spec
-          echo     win_private_assemblies=False, >> openshockclock.spec
-          echo     cipher=block_cipher, >> openshockclock.spec
-          echo     noarchive=False, >> openshockclock.spec
-          echo ) >> openshockclock.spec
-          echo. >> openshockclock.spec
-          echo pyz = PYZ( >> openshockclock.spec
-          echo     a.pure, >> openshockclock.spec
-          echo     a.zipped_data, >> openshockclock.spec
-          echo     cipher=block_cipher >> openshockclock.spec
-          echo ) >> openshockclock.spec
-          echo. >> openshockclock.spec
-          echo exe = EXE( >> openshockclock.spec
-          echo     pyz, >> openshockclock.spec
-          echo     a.scripts, >> openshockclock.spec
-          echo     a.binaries, >> openshockclock.spec
-          echo     a.zipfiles, >> openshockclock.spec
-          echo     a.datas, >> openshockclock.spec
-          echo     [], >> openshockclock.spec
-          echo     name='OpenShockClock', >> openshockclock.spec
-          echo     debug=False, >> openshockclock.spec
-          echo     bootloader_ignore_signals=False, >> openshockclock.spec
-          echo     strip=False, >> openshockclock.spec
-          echo     upx=True, >> openshockclock.spec
-          echo     upx_exclude=[], >> openshockclock.spec
-          echo     runtime_tmpdir=None, >> openshockclock.spec
-          echo     console=True, >> openshockclock.spec
-          echo     disable_windowed_traceback=False, >> openshockclock.spec
-          echo     target_arch=None, >> openshockclock.spec
-          echo     codesign_identity=None, >> openshockclock.spec
-          echo     entitlements_file=None, >> openshockclock.spec
-          echo     icon='singleuser/static/favicon.ico' >> openshockclock.spec
-          echo ) >> openshockclock.spec
-
-      - name: Create spec file on Unix
-        if: matrix.os != 'windows-latest'
-        run: |
-          cat > openshockclock.spec << 'EOF'
-          # -*- mode: python ; coding: utf-8 -*-
-
-          block_cipher = None
-
-          added_files = [
-              ('singleuser/static', 'static'),
-              ('singleuser/templates', 'templates'),
-          ]
-
-          a = Analysis(
-              ['singleuser/app.py'],
-              pathex=[],
-              binaries=[],
-              datas=added_files,
-              hiddenimports=[
-                  'webview',
-                  'PIL',
-                  'flask',
-                  'configparser',
-                  'requests'
-              ],
-              hookspath=[],
-              hooksconfig={},
-              runtime_hooks=[],
-              excludes=['kivy'],
-              win_no_prefer_redirects=False,
-              win_private_assemblies=False,
-              cipher=block_cipher,
-              noarchive=False,
-          )
-
-          pyz = PYZ(
-              a.pure,
-              a.zipped_data,
-              cipher=block_cipher
-          )
-
-          exe = EXE(
-              pyz,
-              a.scripts,
-              a.binaries,
-              a.zipfiles,
-              a.datas,
-              [],
-              name='OpenShockClock',
-              debug=False,
-              bootloader_ignore_signals=False,
-              strip=False,
-              upx=True,
-              upx_exclude=[],
-              runtime_tmpdir=None,
-              console=True,
-              disable_windowed_traceback=False,
-              target_arch=None,
-              codesign_identity=None,
-              entitlements_file=None,
-              icon='singleuser/static/favicon.ico'
-          )
-          EOF
-
-      - name: Build with PyInstaller
-        run: pyinstaller openshockclock.spec
+          python setup.py build
 
       - name: Create ZIP archive
         run: |
-          cd dist
+          cd build
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            7z a ../${{ matrix.asset_name }} OpenShockClock.exe
-          else
-            zip -r ../${{ matrix.asset_name }} OpenShockClock
+            cd exe.win-amd64-*
+            7z a ../../${{ matrix.asset_name }} *
+          elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            cd exe.linux-x86_64-*
+            zip -r ../../${{ matrix.asset_name }} *
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            cd exe.macosx-*
+            zip -r ../../${{ matrix.asset_name }} *
           fi
-        shell: bash
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -192,19 +74,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
       - name: Create Release
-        id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
           files: |
             *-build/*.zip
         env:
