@@ -21,9 +21,6 @@ jobs:
           - os: ubuntu-latest
             output_name: OpenShockClock
             asset_name: OpenShockClock-Linux.zip
-          - os: macos-latest
-            output_name: OpenShockClock
-            asset_name: OpenShockClock-MacOS.zip
 
     steps:
       - uses: actions/checkout@v4
@@ -33,11 +30,6 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
-
-      - name: Install macOS dependencies
-        if: matrix.os == 'macos-latest'
-        run: |
-          pip install pyobjc-core pyobjc-framework-Cocoa pyobjc-framework-WebKit
 
       - name: Install Linux dependencies
         if: matrix.os == 'ubuntu-latest'
@@ -68,9 +60,6 @@ jobs:
             7z a ../../${{ matrix.asset_name }} *
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             cd exe.linux-x86_64-*
-            zip -r ../../${{ matrix.asset_name }} *
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            cd exe.macos*
             zip -r ../../${{ matrix.asset_name }} *
           fi
 
