@@ -37,7 +37,7 @@ jobs:
       - name: Install macOS dependencies
         if: matrix.os == 'macos-latest'
         run: |
-          pip install pyobjc-framework-Cocoa pyobjc-framework-WebKit
+          pip install pyobjc-core pyobjc-framework-Cocoa pyobjc-framework-WebKit
 
       - name: Install Linux dependencies
         if: matrix.os == 'ubuntu-latest'

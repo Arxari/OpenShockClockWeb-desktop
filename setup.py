@@ -4,14 +4,14 @@ import os
 
 platform_packages = {
     "win32": ["pywin32"],
-    "darwin": ["pyobjc-framework-Cocoa", "pyobjc-framework-WebKit"],
+    "darwin": ["pyobjc-core", "pyobjc-framework-Cocoa", "pyobjc-framework-WebKit"],
     "linux": []
 }
 
 build_exe_options = {
     "packages": [
         "os", "flask", "logging", "requests", "configparser",
-        "webview"
+        "webview", "pyobjc"
     ] + platform_packages.get(sys.platform, []),
     "excludes": ["tkinter", "PyQt5", "matplotlib", "scipy", "numpy"],
     "include_files": [
