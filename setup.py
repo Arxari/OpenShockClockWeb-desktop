@@ -1,8 +1,18 @@
 from cx_Freeze import setup, Executable
 import sys
+import os
+
+platform_packages = {
+    "win32": ["pywin32"],
+    "darwin": ["pyobjc-framework-Cocoa", "pyobjc-framework-WebKit"],
+    "linux": []
+}
 
 build_exe_options = {
-    "packages": ["os", "flask", "webview", "requests", "configparser", "logging"],
+    "packages": [
+        "os", "flask", "logging", "requests", "configparser",
+        "webview"
+    ] + platform_packages.get(sys.platform, []),
     "excludes": ["tkinter", "PyQt5", "matplotlib", "scipy", "numpy"],
     "include_files": [
         ("singleuser/static", "static"),
